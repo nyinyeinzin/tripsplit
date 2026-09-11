@@ -1,0 +1,14 @@
+# Netlify deploy settings for the Vite app.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Vite 5 needs Node 18+.
+[build.environment]
+  NODE_VERSION = "20"
+
+# Single-page app: send all routes to index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
