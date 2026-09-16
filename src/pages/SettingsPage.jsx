@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { LogOut, Pencil, Plus, ShieldCheck, Trash2, X } from "lucide-react";
-import { TRIP_NAME, adminCredentials, groupSize, tripDateLabel, tripDays } from "../data/tripData";
+import { LogOut, Pencil, Plus, Trash2, UserRound, X } from "lucide-react";
+import { TRIP_NAME, groupSize, tripDateLabel, tripDays } from "../data/tripData";
 import CurrencySwitch from "../components/CurrencySwitch";
 
 const emptyPlace = {
@@ -40,17 +40,15 @@ const fieldLabels = [
 export default function SettingsPage({
   activities,
   isAdmin,
+  user,
   currency,
   setCurrency,
-  onLogin,
   onLogout,
   onAddPlace,
   onEditPlace,
   onDeletePlace,
   onResetLocalData
 }) {
-  const [loginForm, setLoginForm] = useState({ username: "", password: "" });
-  const [loginError, setLoginError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingPlace, setEditingPlace] = useState(null);
 
@@ -58,13 +56,6 @@ export default function SettingsPage({
     () => activities.filter((item) => item.aiAdded || item.customAdded),
     [activities]
   );
-
-  function submitLogin(event) {
-    event.preventDefault();
-    const valid = onLogin(loginForm.username.trim(), loginForm.password);
-    setLoginError(valid ? "" : "Wrong username or password");
-    if (valid) setLoginForm({ username: "", password: "" });
-  }
 
   function startAdd() {
     setEditingPlace(null);
@@ -87,7 +78,7 @@ export default function SettingsPage({
     <main className="page page-scroll">
       <header className="page-header settings-header">
         <div>
-          <p className="eyebrow">{isAdmin ? "Admin mode" : "Viewer mode"}</p>
+          <p className="eyebrow">Signed in</p>
           <h1>Settings</h1>
         </div>
         {isAdmin && (
@@ -97,30 +88,14 @@ export default function SettingsPage({
         )}
       </header>
 
-      {!isAdmin && (
-        <section className="card admin-card">
-          <span className="admin-icon"><ShieldCheck size={24} /></span>
-          <h2>Admin login</h2>
-          <p>Anyone can browse and edit places. Admins can also reorder stops and manage settings.</p>
-          <form className="admin-form" onSubmit={submitLogin}>
-            <input
-              value={loginForm.username}
-              onChange={(event) => setLoginForm((current) => ({ ...current, username: event.target.value }))}
-              placeholder="Username"
-              autoComplete="username"
-            />
-            <input
-              value={loginForm.password}
-              onChange={(event) => setLoginForm((current) => ({ ...current, password: event.target.value }))}
-              placeholder="Password"
-              type="password"
-              autoComplete="current-password"
-            />
-            {loginError && <small className="form-error">{loginError}</small>}
-            <button className="primary-action" type="submit">Unlock Admin</button>
-          </form>
-        </section>
-      )}
+      <section className="card account-card">
+        <span className="admin-icon"><UserRound size={24} /></span>
+        <div>
+          <p className="eyebrow accent">Your account</p>
+          <h2>{user?.user_metadata?.name || user?.email?.split("@")[0] || "Traveler"}</h2>
+          <p>{user?.email}</p>
+        </div>
+      </section>
 
       <section className="card settings-placeholder-card">
         <p className="eyebrow accent">Preference</p>
@@ -136,8 +111,8 @@ export default function SettingsPage({
           <section className="card admin-card">
             <div className="admin-row">
               <div>
-                <p className="eyebrow accent">Logged in</p>
-                <h2>{adminCredentials.username}</h2>
+                <p className="eyebrow accent">Prototype itinerary</p>
+                <h2>Manage places</h2>
               </div>
               <button className="add-place-button" type="button" onClick={startAdd}>
                 <Plus size={19} />

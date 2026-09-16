@@ -1,22 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import BottomNavigation from "./components/BottomNavigation";
 import SmartAddPlace from "./components/SmartAddPlace";
-import { activities as baseActivities, airbnbs, adminCredentials, groupSize, tripDays } from "./data/tripData";
+import { activities as baseActivities, airbnbs, groupSize, tripDays } from "./data/tripData";
+import { useAuth } from "./contexts/AuthContext";
 import HomePage from "./pages/HomePage";
 import MapPage from "./pages/MapPage";
 import BudgetPage from "./pages/BudgetPage";
 import AIPage from "./pages/AIPage";
+import AuthPage from "./pages/AuthPage";
 import SettingsPage from "./pages/SettingsPage";
 import { enrichPlaceInput } from "./services/placeEnrichment";
 import { getRouteIdsForDay, moveEditablePlace } from "./utils/routes";
 import { STORAGE_KEYS, readStoredJson, removeStoredKey, writeStoredJson } from "./utils/storage";
 
 export default function App() {
+  const { user, loading: authLoading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("home");
   const [customPlaces, setCustomPlaces] = useState(() => readStoredJson(STORAGE_KEYS.customPlaces, []));
   const [deletedPlaceIds, setDeletedPlaceIds] = useState(() => readStoredJson(STORAGE_KEYS.deletedPlaceIds, []));
   const [routeOverrides, setRouteOverrides] = useState(() => readStoredJson(STORAGE_KEYS.routeOverrides, {}));
-  const [isAdmin, setIsAdmin] = useState(() => readStoredJson(STORAGE_KEYS.adminSession, false));
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [selectedDay, setSelectedDay] = useState(1);
   const [currency, setCurrency] = useState(() => readStoredJson(STORAGE_KEYS.currency, "THB"));
@@ -47,16 +49,8 @@ export default function App() {
   }, [routeOverrides]);
 
   useEffect(() => {
-    writeStoredJson(STORAGE_KEYS.adminSession, isAdmin);
-  }, [isAdmin]);
-
-  useEffect(() => {
     writeStoredJson(STORAGE_KEYS.currency, currency);
   }, [currency]);
-
-  useEffect(() => {
-    if (!isAdmin && activeTab === "ai") setActiveTab("home");
-  }, [activeTab, isAdmin]);
 
   // Stable handlers: MapPage rebuilds every marker when these change identity,
   // so they must not be re-created on unrelated re-renders.
@@ -78,16 +72,6 @@ export default function App() {
     setSelectedPlace(place);
     setSelectedDay(day || place.day || selectedDay);
     setActiveTab("map");
-  }
-
-  function loginAdmin(username, password) {
-    const valid = username === adminCredentials.username && password === adminCredentials.password;
-    setIsAdmin(valid);
-    return valid;
-  }
-
-  function logoutAdmin() {
-    setIsAdmin(false);
   }
 
   function addPlaces(newPlaces) {
@@ -246,6 +230,19 @@ export default function App() {
     window.location.reload();
   }
 
+  if (authLoading) {
+    return (
+      <main className="auth-page auth-loading" aria-live="polite">
+        <div className="auth-loading-mark">TS</div>
+        <p>Opening your trips…</p>
+      </main>
+    );
+  }
+
+  if (!user) return <AuthPage />;
+
+  const isAdmin = true;
+
   return (
     <div className="app-shell">
       {activeTab === "home" && (
@@ -282,10 +279,10 @@ export default function App() {
         <SettingsPage
           activities={activities}
           isAdmin={isAdmin}
+          user={user}
           currency={currency}
           setCurrency={setCurrency}
-          onLogin={loginAdmin}
-          onLogout={logoutAdmin}
+          onLogout={signOut}
           onAddPlace={(place) => addPlaces({ ...place, customAdded: true, aiAdded: false, deletable: true })}
           onEditPlace={editPlace}
           onDeletePlace={deletePlace}
