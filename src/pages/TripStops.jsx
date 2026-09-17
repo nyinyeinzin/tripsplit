@@ -112,15 +112,25 @@ export default function TripStops({ trip, user }) {
     if (!trimmed || !days.includes(day)) return setError("Enter a place and choose a day within your trip.");
     setSaving(true);
     setError("");
-    const values = { name: trimmed, day, scheduled_time: time || null, notes: notes.trim() || null };
+    const nameChanged = editingId && stops.find((stop) => stop.id === editingId)?.name !== trimmed;
+    const values = { name: trimmed, day, scheduled_time: time || null, notes: notes.trim() || null, ...(nameChanged ? { lat: null, lng: null } : {}) };
     const result = editingId
       ? await supabase.from("stops").update(values).eq("id", editingId).eq("trip_id", trip.id)
       : await supabase.from("stops").insert({ ...values, trip_id: trip.id, created_by: user.id }).select("id").single();
     setSaving(false);
     if (result.error) return setError(result.error.message);
     if (!editingId && result.data?.id) await supabase.from("stop_participants").insert({ stop_id: result.data.id, user_id: user.id });
+    let routeClearFailed = false;
+    if (nameChanged) {
+      const [outgoing, incoming] = await Promise.all([
+        supabase.from("legs").delete().eq("trip_id", trip.id).eq("from_stop_id", editingId),
+        supabase.from("legs").delete().eq("trip_id", trip.id).eq("to_stop_id", editingId)
+      ]);
+      routeClearFailed = Boolean(outgoing.error || incoming.error);
+    }
     resetForm();
     await loadStops();
+    if (routeClearFailed) setError("Place saved, but its old route estimate could not be cleared. Please enter a fresh estimate.");
   }
 
   async function deleteStop(stop) {
