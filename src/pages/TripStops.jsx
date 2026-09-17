@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { CalendarDays, Clock3, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, Clock3, MapPin, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
 const stopFields = "id,trip_id,name,day,scheduled_time,notes,order_index,created_by,created_at";
@@ -31,6 +31,10 @@ export default function TripStops({ trip, user }) {
   const [time, setTime] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
+  const [aiAvailable, setAiAvailable] = useState(false);
+  const [aiDay, setAiDay] = useState(trip.start_date);
+  const [ideas, setIdeas] = useState([]);
+  const [aiBusy, setAiBusy] = useState(false);
   const days = tripDays(trip.start_date, trip.end_date);
   const canEdit = role === "owner" || role === "editor";
 
@@ -54,6 +58,34 @@ export default function TripStops({ trip, user }) {
     const channel = supabase.channel(`stops:${trip.id}`).on("postgres_changes", { event: "*", schema: "public", table: "stops", filter: `trip_id=eq.${trip.id}` }, () => loadStops()).subscribe();
     return () => { active = false; supabase.removeChannel(channel); };
   }, [trip.id, user.id, loadStops]);
+
+  useEffect(() => {
+    fetch("/.netlify/functions/suggest-places").then((response) => response.ok ? response.json() : null).then((data) => setAiAvailable(Boolean(data?.available))).catch(() => setAiAvailable(false));
+  }, []);
+
+  async function suggestPlaces() {
+    setAiBusy(true); setError("");
+    try {
+      const { data } = await supabase.auth.getSession();
+      const response = await fetch("/.netlify/functions/suggest-places", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token || ""}` }, body: JSON.stringify({ tripId: trip.id, day: aiDay }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not suggest places.");
+      setIdeas(result.suggestions);
+    } catch (suggestError) { setError(suggestError.message); }
+    setAiBusy(false);
+  }
+
+  async function addIdea(idea) {
+    setAiBusy(true); setError("");
+    const { data, error: addError } = await supabase.from("stops").insert({ trip_id: trip.id, created_by: user.id, name: idea.name, day: aiDay }).select("id").single();
+    if (addError) setError(addError.message);
+    else {
+      await supabase.from("stop_participants").insert({ stop_id: data.id, user_id: user.id });
+      setIdeas((current) => current.filter((item) => item.name !== idea.name));
+      await loadStops();
+    }
+    setAiBusy(false);
+  }
 
   function resetForm() {
     setEditingId(null);
@@ -109,6 +141,7 @@ export default function TripStops({ trip, user }) {
       <label><span>Notes <small>optional</small></span><textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Tickets, meetup details, ideas…" rows="3" /></label>
       <div className="trip-stop-actions"><button className="trip-create-submit" type="submit" disabled={saving}>{saving ? "Saving…" : editingId ? "Save changes" : "Add stop"}</button><button type="button" onClick={resetForm}>Cancel</button></div>
     </form>}
+    {canEdit && aiAvailable && <div className="trip-ai-ideas"><div><Sparkles size={20} /><div><h3>Need ideas?</h3><p>Ask AI for places in {trip.destination}. Check details before you go.</p></div></div><div className="trip-ai-controls"><select aria-label="Suggestion day" value={aiDay} onChange={(event) => setAiDay(event.target.value)}>{days.map((date) => <option key={date} value={date}>{formatDay(date)}</option>)}</select><button type="button" disabled={aiBusy} onClick={suggestPlaces}>{aiBusy ? "Thinking…" : "Suggest places"}</button></div>{ideas.length > 0 && <div className="trip-ai-list">{ideas.map((idea) => <article key={idea.name}><div><strong>{idea.name}</strong><p>{idea.reason}</p></div><button type="button" disabled={aiBusy} onClick={() => addIdea(idea)} aria-label={`Add ${idea.name}`}><Plus size={18} /></button></article>)}</div>}</div>}
     {loading ? <p className="trips-status" role="status">Loading stops…</p> : stops.length === 0 && !showForm ? <div className="trip-next-step"><span><MapPin size={26} /></span><h2>No stops yet</h2><p>{canEdit ? "Add a place to start your day-by-day itinerary." : "No places have been added to this trip yet."}</p></div> : days.map((date, index) => {
       const dayStops = stops.filter((stop) => stop.day === date);
       if (!dayStops.length) return null;

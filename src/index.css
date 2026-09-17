@@ -451,3 +451,20 @@ p { font-size: 16px; line-height: 1.45; }
 .trip-expense-list article b { white-space: nowrap; font-size: 14px; }
 .trip-expense-list article button { width: 36px; min-width: 36px; min-height: 36px; border-radius: 10px; background: #fff1f2; color: #be123c; }
 @media (max-width: 650px) { .trip-custom-splits { grid-template-columns: 1fr; } .trip-expense-list article { flex-wrap: wrap; } .trip-expense-list article > div { flex-basis: calc(100% - 50px); } .trip-expense-list article b { margin-left: 48px; } }
+
+/* Optional AI place ideas */
+.trip-ai-ideas { margin: 0 0 22px; padding: 17px; border: 1px solid #d9e9e6; border-radius: 18px; background: #f0f8f5; }
+.trip-ai-ideas > div:first-child { display: flex; align-items: flex-start; gap: 10px; color: #087a70; }
+.trip-ai-ideas h3 { font-size: 17px; color: #14282d; }
+.trip-ai-ideas p { color: #60757a; font-size: 13px; }
+.trip-ai-controls { display: flex; gap: 9px; margin-top: 14px; }
+.trip-ai-controls select { min-width: 0; flex: 1; padding: 0 11px; border: 1px solid #bdd8d1; border-radius: 11px; background: white; color: #14282d; }
+.trip-ai-controls button, .trip-ai-list button { padding: 0 13px; border-radius: 11px; background: #0a6f68; color: white; font-weight: 800; }
+.trip-ai-controls button:disabled, .trip-ai-list button:disabled { opacity: .6; }
+.trip-ai-list { display: grid; gap: 7px; margin-top: 15px; }
+.trip-ai-list article { display: flex; align-items: center; gap: 12px; padding: 11px; border-radius: 11px; background: white; }
+.trip-ai-list article > div { flex: 1; }
+.trip-ai-list article strong { font-size: 14px; }
+.trip-ai-list article p { margin-top: 3px; }
+.trip-ai-list article button { min-width: 38px; width: 38px; height: 38px; min-height: 38px; }
+@media (max-width: 650px) { .trip-ai-controls { flex-direction: column; } .trip-ai-controls select { min-height: 44px; } }
