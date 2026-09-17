@@ -37,8 +37,14 @@ export default function App() {
   }, [user, loadTrips]);
 
   async function createTrip(values) {
-    const { data, error: createError } = await supabase.from("trips").insert({ ...values, owner_id: user.id }).select(fields).single();
+    const id = crypto.randomUUID();
+    const { error: createError } = await supabase.from("trips").insert({ id, ...values, owner_id: user.id });
     if (createError) throw createError;
+    const { data, error: readError } = await supabase.from("trips").select(fields).eq("id", id).single();
+    if (readError) {
+      await loadTrips();
+      throw new Error("Trip was saved, but couldn't be opened. Refresh the page before trying again.");
+    }
     setTrips((current) => [data, ...current]);
     setSelectedTripId(data.id);
   }

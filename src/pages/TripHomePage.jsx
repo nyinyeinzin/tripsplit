@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, CalendarDays, CarFront, Compass, LogOut, MapPin, Plus } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Compass, LogOut, MapPin, Plus } from "lucide-react";
 import TripStops from "./TripStops";
 import TripInvite from "./TripInvite";
 import TripLegs from "./TripLegs";
 import TripExpenses from "./TripExpenses";
 
-const currencies = ["THB", "IDR", "USD", "EUR", "GBP", "SGD", "JPY", "AUD"];
-const emptyForm = { name: "", destination: "", start_date: "", end_date: "", currency: "THB", default_vehicle_capacity: "4", cover_photo_url: "" };
+const currencies = ["THB", "MYR", "IDR", "USD", "EUR", "GBP", "SGD", "JPY", "AUD"];
+const emptyForm = { name: "", destination: "", start_date: "", end_date: "", currency: "THB", cover_photo_url: "" };
 
 function dayCount(start, end) {
   if (!start || !end) return 0;
@@ -38,7 +38,7 @@ export default function TripHomePage({ user, trips, loading, error, selectedTrip
     setSubmitting(true);
     setFormError("");
     try {
-      await onCreateTrip({ name: form.name.trim(), destination: form.destination.trim(), start_date: form.start_date, end_date: form.end_date, currency: form.currency, default_vehicle_capacity: Number(form.default_vehicle_capacity), cover_photo_url: cover || null });
+      await onCreateTrip({ name: form.name.trim(), destination: form.destination.trim(), start_date: form.start_date, end_date: form.end_date, currency: form.currency, cover_photo_url: cover || null });
       setForm(emptyForm);
       setCreating(false);
     } catch (createError) {
@@ -54,7 +54,7 @@ export default function TripHomePage({ user, trips, loading, error, selectedTrip
       <button className="trips-back" type="button" onClick={() => onSelectTrip(null)}><ArrowLeft size={18} /> All trips</button>
       {selectedTrip.cover_photo_url && <img className="trip-cover" src={selectedTrip.cover_photo_url} alt="" />}
       <p className="trips-overline">Your itinerary</p><h1>{selectedTrip.name}</h1><p className="trip-destination"><MapPin size={18} /> {selectedTrip.destination}</p>
-      <div className="trip-detail-facts"><span><CalendarDays size={19} /> {dateLabel(selectedTrip.start_date)} – {dateLabel(selectedTrip.end_date)} · {dayCount(selectedTrip.start_date, selectedTrip.end_date)} days</span><span><CarFront size={19} /> {selectedTrip.default_vehicle_capacity} seats per vehicle</span><span>{selectedTrip.currency} trip currency</span></div>
+      <div className="trip-detail-facts"><span><CalendarDays size={19} /> {dateLabel(selectedTrip.start_date)} – {dateLabel(selectedTrip.end_date)} · {dayCount(selectedTrip.start_date, selectedTrip.end_date)} days</span><span>{selectedTrip.currency} trip currency</span></div>
       <TripStops key={selectedTrip.id} trip={selectedTrip} user={user} />
       <TripLegs key={`legs-${selectedTrip.id}`} trip={selectedTrip} user={user} onTripUpdated={onUpdateTrip} />
       <TripExpenses key={`expenses-${selectedTrip.id}`} trip={selectedTrip} user={user} />
@@ -66,7 +66,7 @@ export default function TripHomePage({ user, trips, loading, error, selectedTrip
         <label><span>Destination</span><input required maxLength={160} value={form.destination} onChange={(event) => update("destination", event.target.value)} placeholder="Bali, Indonesia" /></label>
         <div className="trip-form-pair"><label><span>Start date</span><input required type="date" value={form.start_date} onChange={(event) => update("start_date", event.target.value)} /></label><label><span>End date</span><input required type="date" min={form.start_date || undefined} value={form.end_date} onChange={(event) => update("end_date", event.target.value)} /></label></div>
         {days > 0 && <p className="trip-duration"><CalendarDays size={16} /> {days} {days === 1 ? "day" : "days"} to explore</p>}
-        <div className="trip-form-pair"><label><span>Trip currency</span><select value={form.currency} onChange={(event) => update("currency", event.target.value)}>{currencies.map((code) => <option key={code} value={code}>{code}</option>)}</select></label><label><span>Seats per vehicle</span><input required type="number" min="1" max="50" value={form.default_vehicle_capacity} onChange={(event) => update("default_vehicle_capacity", event.target.value)} /></label></div>
+        <label><span>Trip currency</span><select value={form.currency} onChange={(event) => update("currency", event.target.value)}>{currencies.map((code) => <option key={code} value={code}>{code}</option>)}</select></label>
         <label><span>Cover photo URL <small>optional</small></span><input type="url" value={form.cover_photo_url} onChange={(event) => update("cover_photo_url", event.target.value)} placeholder="https://…" /></label>
         {formError && <p className="trip-form-error" role="alert">{formError}</p>}
         <button className="trip-create-submit" type="submit" disabled={submitting}>{submitting ? "Creating trip…" : "Create trip"}{!submitting && <ArrowRight size={18} />}</button>

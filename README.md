@@ -16,7 +16,7 @@ TripSplit is a mobile-first collaborative travel itinerary and shared-expense pl
 - Trip expense ledger with equal or custom splits, balances, and settle-up suggestions
 - Optional AI place ideas powered by a server-only Gemini key
 
-After signing in, create a trip with a name, destination, dates, currency, and vehicle capacity. The trip should appear in Your trips, remain after a refresh, and be visible in the Supabase `trips` and `trip_members` tables. Open it and add a place; edits and deletion should persist after refreshing, and another signed-in trip member should see changes live. The old Bali prototype files remain in the repository but are no longer rendered by the app.
+After signing in, create a trip with a name, destination, dates, and currency. The trip should appear in Your trips, remain after a refresh, and be visible in the Supabase `trips` and `trip_members` tables. Open it and add a place; edits and deletion should persist after refreshing, and another signed-in trip member should see changes live. Ride capacity defaults to four people and can be changed later in Transport settings. The old Bali prototype files remain in the repository but are no longer rendered by the app.
 
 ## Getting started
 

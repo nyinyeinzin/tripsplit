@@ -12,7 +12,7 @@ export default function TripLegs({ trip, user, onTripUpdated }) {
   const [members, setMembers] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [role, setRole] = useState(null);
-  const [fare, setFare] = useState({ base: String(trip.transport_base_fare ?? 0), perKm: String(trip.transport_per_km_rate ?? 0) });
+  const [fare, setFare] = useState({ base: String(trip.transport_base_fare ?? 0), perKm: String(trip.transport_per_km_rate ?? 0), capacity: String(trip.default_vehicle_capacity ?? 4) });
   const [editing, setEditing] = useState(null);
   const [manual, setManual] = useState({ minutes: "", distance: "", cost: "" });
   const [busy, setBusy] = useState("");
@@ -78,11 +78,11 @@ export default function TripLegs({ trip, user, onTripUpdated }) {
 
   async function saveFare(event) {
     event.preventDefault();
-    const base = Number(fare.base), perKm = Number(fare.perKm);
-    if (!Number.isFinite(base) || !Number.isFinite(perKm) || base < 0 || perKm < 0) return setError("Fare rates must be zero or more.");
+    const base = Number(fare.base), perKm = Number(fare.perKm), capacity = Number(fare.capacity);
+    if (!Number.isFinite(base) || !Number.isFinite(perKm) || base < 0 || perKm < 0 || !Number.isInteger(capacity) || capacity < 1 || capacity > 50) return setError("Enter non-negative fares and a vehicle capacity between 1 and 50.");
     setBusy("fare"); setError("");
     try {
-      await onTripUpdated(trip.id, { transport_base_fare: base, transport_per_km_rate: perKm });
+      await onTripUpdated(trip.id, { transport_base_fare: base, transport_per_km_rate: perKm, default_vehicle_capacity: capacity });
       const updates = legs.filter((leg) => leg.estimated_distance_km != null).map((leg) => supabase.from("legs").update({ estimated_cost: Math.round((base + Number(leg.estimated_distance_km) * perKm) * 100) / 100 }).eq("id", leg.id));
       const results = await Promise.all(updates);
       const problem = results.find((result) => result.error)?.error;
@@ -134,7 +134,7 @@ export default function TripLegs({ trip, user, onTripUpdated }) {
 
   const pairs = stops.slice(1).map((to, index) => [stops[index], to]);
   return <section className="trip-legs"><div className="trip-stops-heading"><div><p className="trips-overline">Getting around</p><h2>Transport & shared fares</h2></div></div>
-    {canEdit && <form className="trip-fare-settings" onSubmit={saveFare}><p>Fare per vehicle: base fare + distance × per-km rate. Set these for your destination.</p><div className="trip-fare-fields"><label>Base fare ({trip.currency}) <input type="number" min="0" step="0.01" value={fare.base} onChange={(event) => setFare({ ...fare, base: event.target.value })} /></label><label>Per km ({trip.currency}) <input type="number" min="0" step="0.01" value={fare.perKm} onChange={(event) => setFare({ ...fare, perKm: event.target.value })} /></label><button type="submit" disabled={busy === "fare"}>Save rates</button></div></form>}
+    {canEdit && <form className="trip-fare-settings" onSubmit={saveFare}><p>Optional ride settings. A trip starts with 4 people per car; change this if your group uses a van or another vehicle. Fare per vehicle = base fare + distance × per-km rate.</p><div className="trip-fare-fields"><label>People per vehicle <input type="number" min="1" max="50" step="1" value={fare.capacity} onChange={(event) => setFare({ ...fare, capacity: event.target.value })} /></label><label>Base fare ({trip.currency}) <input type="number" min="0" step="0.01" value={fare.base} onChange={(event) => setFare({ ...fare, base: event.target.value })} /></label><label>Per km ({trip.currency}) <input type="number" min="0" step="0.01" value={fare.perKm} onChange={(event) => setFare({ ...fare, perKm: event.target.value })} /></label><button type="submit" disabled={busy === "fare"}>Save ride settings</button></div></form>}
     {error && <p className="trip-form-error" role="alert">{error}</p>}
     {!pairs.length ? <p className="trips-status">Add at least two stops to see transport between them.</p> : pairs.map(([from, to]) => {
       const key = `${from.id}:${to.id}`;
