@@ -16,6 +16,7 @@ async function geocode(name, destination, apiKey) {
 }
 
 export default async function estimateLeg(request) {
+  if (request.method === "GET") return json({ available: Boolean(process.env.ORS_API_KEY && (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL) && (process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY)) });
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   if (!token) return json({ error: "Sign in to estimate a route." }, 401);

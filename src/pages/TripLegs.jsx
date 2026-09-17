@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CarFront, Clock3, MapPin, Route, Users } from "lucide-react";
 import { supabase } from "../lib/supabase";
 
@@ -17,6 +17,8 @@ export default function TripLegs({ trip, user, onTripUpdated }) {
   const [manual, setManual] = useState({ minutes: "", distance: "", cost: "" });
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const autoAttempted = useRef(new Set());
+  const lastAutoCall = useRef(0);
   const canEdit = role === "owner" || role === "editor";
 
   const load = useCallback(async () => {
@@ -46,6 +48,33 @@ export default function TripLegs({ trip, user, onTripUpdated }) {
     const channel = supabase.channel(`legs:${trip.id}`).on("postgres_changes", { event: "*", schema: "public", table: "stops", filter: `trip_id=eq.${trip.id}` }, load).on("postgres_changes", { event: "*", schema: "public", table: "legs", filter: `trip_id=eq.${trip.id}` }, load).on("postgres_changes", { event: "*", schema: "public", table: "stop_participants" }, load).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [trip.id, load]);
+
+  useEffect(() => {
+    if (!canEdit || stops.length < 2) return undefined;
+    let active = true;
+    async function estimateMissing() {
+      try {
+        const probe = await fetch("/.netlify/functions/estimate-leg");
+        if (!probe.ok || !(await probe.json()).available) return;
+        const { data } = await supabase.auth.getSession();
+        if (!data.session?.access_token) return;
+        for (let i = 1; i < stops.length && active; i++) {
+          const from = stops[i - 1], to = stops[i];
+          const key = `${from.id}:${to.id}`;
+          if (legs.some((leg) => leg.from_stop_id === from.id && leg.to_stop_id === to.id) || autoAttempted.current.has(key)) continue;
+          autoAttempted.current.add(key);
+          const wait = Math.max(0, 1000 - (Date.now() - lastAutoCall.current));
+          if (wait) await new Promise((resolve) => setTimeout(resolve, wait));
+          if (!active) break;
+          lastAutoCall.current = Date.now();
+          const response = await fetch("/.netlify/functions/estimate-leg", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session.access_token}` }, body: JSON.stringify({ tripId: trip.id, fromStopId: from.id, toStopId: to.id }) });
+          if (response.ok) { await load(); break; }
+        }
+      } catch { /* Manual entry remains available when the function is offline. */ }
+    }
+    estimateMissing();
+    return () => { active = false; };
+  }, [canEdit, stops, legs, trip.id, load]);
 
   async function saveFare(event) {
     event.preventDefault();
