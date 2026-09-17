@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ArrowRight, Compass, LoaderCircle, LockKeyhole, Mail, Users } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
-export default function AuthPage() {
+export default function AuthPage({ embedded = false }) {
   const { configured, signInWithGoogle, signInWithPassword, signUp } = useAuth();
   const [mode, setMode] = useState("signin");
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -50,6 +50,7 @@ export default function AuthPage() {
   async function continueWithGoogle() {
     setSubmitting(true);
     setError("");
+    if (embedded) window.sessionStorage.setItem("tripsplit-pending-invite", window.location.pathname + window.location.search);
     const { error: oauthError } = await signInWithGoogle();
     if (oauthError) {
       setError(oauthError.message);
@@ -69,8 +70,9 @@ export default function AuthPage() {
     );
   }
 
+  const Wrapper = embedded ? "div" : "main";
   return (
-    <main className="auth-page">
+    <Wrapper className={`auth-page${embedded ? " auth-embedded" : ""}`}>
       <section className="auth-shell">
         <div className="auth-story">
           <div>
@@ -131,6 +133,6 @@ export default function AuthPage() {
           <p className="auth-terms">By continuing, you agree to use TripSplit responsibly with your travel group.</p>
         </div>
       </section>
-    </main>
+    </Wrapper>
   );
 }

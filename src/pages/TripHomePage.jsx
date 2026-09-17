@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, CalendarDays, CarFront, Compass, LogOut, MapPin, Plus } from "lucide-react";
 import TripStops from "./TripStops";
+import TripInvite from "./TripInvite";
 
 const currencies = ["THB", "IDR", "USD", "EUR", "GBP", "SGD", "JPY", "AUD"];
 const emptyForm = { name: "", destination: "", start_date: "", end_date: "", currency: "THB", default_vehicle_capacity: "4", cover_photo_url: "" };
@@ -53,6 +54,7 @@ export default function TripHomePage({ user, trips, loading, error, selectedTrip
       <p className="trips-overline">Your itinerary</p><h1>{selectedTrip.name}</h1><p className="trip-destination"><MapPin size={18} /> {selectedTrip.destination}</p>
       <div className="trip-detail-facts"><span><CalendarDays size={19} /> {dateLabel(selectedTrip.start_date)} – {dateLabel(selectedTrip.end_date)} · {dayCount(selectedTrip.start_date, selectedTrip.end_date)} days</span><span><CarFront size={19} /> {selectedTrip.default_vehicle_capacity} seats per vehicle</span><span>{selectedTrip.currency} trip currency</span></div>
       <TripStops key={selectedTrip.id} trip={selectedTrip} user={user} />
+      <TripInvite key={`invite-${selectedTrip.id}`} trip={selectedTrip} user={user} />
     </section> : creating ? <section className="trip-create-panel">
       <button className="trips-back" type="button" onClick={() => setCreating(false)}><ArrowLeft size={18} /> Your trips</button><p className="trips-overline">A new adventure</p><h1>Create a trip</h1><p className="trip-create-intro">Choose where and when. You can plan the stops together next.</p>
       <form className="trip-create-form" onSubmit={submit}>

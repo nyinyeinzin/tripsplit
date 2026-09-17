@@ -358,3 +358,32 @@ p { font-size: 16px; line-height: 1.45; }
 .trip-stop-controls button:last-child { color: #be123c; background: #fff1f2; }
 .trip-stops-footnote { display: flex; align-items: center; gap: 6px; margin-top: 24px; color: #60757a; font-size: 13px; }
 @media (max-width: 650px) { .trip-stops-heading { align-items: flex-start; flex-direction: column; } .trip-stops-heading .trip-new-button { width: 100%; } .trip-stop-controls { flex-direction: column; } }
+
+/* Invite links and read-only preview */
+.trip-invite { margin-top: 34px; padding: 23px; border: 1px solid #d9e9e6; border-radius: 22px; background: #eaf5f1; }
+.trip-invite-heading { display: flex; align-items: flex-start; gap: 13px; }
+.trip-invite-heading > span { width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; border-radius: 13px; background: #cae9df; color: #087a70; }
+.trip-invite-heading h2 { font-size: 20px; }
+.trip-invite-heading p { margin-top: 6px; color: #496469; font-size: 14px; }
+.trip-invite-controls { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+.trip-invite-controls label { display: grid; gap: 6px; color: #496469; font-size: 13px; font-weight: 750; }
+.trip-invite-controls select { height: 44px; padding: 0 11px; border: 1px solid #bdd8d1; border-radius: 12px; background: white; color: #14282d; }
+.trip-invite-controls button { display: flex; align-items: center; gap: 8px; padding: 0 15px; border-radius: 12px; background: #0a6f68; color: white; font-weight: 800; }
+.trip-invite-controls button:disabled { opacity: .6; }
+.trip-invite-link { display: flex; gap: 7px; margin-top: 16px; }
+.trip-invite-link input { min-width: 0; flex: 1; padding: 0 12px; border: 1px solid #bdd8d1; border-radius: 11px; background: white; color: #334f55; }
+.trip-invite-link button { width: 44px; border-radius: 11px; background: #cce8df; color: #087a70; }
+.trip-invite-message { margin-top: 9px; color: #175d59; font-size: 13px; }
+.trip-invite-preview { max-width: 750px; margin: 0 auto; }
+.trip-invite-preview h1 { margin-top: 10px; }
+.trip-invite-preview h2 { margin: 28px 0 13px; }
+.trip-preview-dates { display: flex; align-items: center; gap: 7px; margin-top: 12px; color: #496469; }
+.trip-preview-stops { display: grid; gap: 8px; }
+.trip-preview-stops > div { display: grid; gap: 5px; padding: 13px; border-radius: 13px; background: white; }
+.trip-preview-stops small { color: #60757a; }
+.trip-invite-preview > .trip-create-submit { margin-top: 24px; }
+.trip-preview-signin { margin: 24px 0 12px; color: #496469; }
+.trip-invite-preview .auth-embedded { min-height: auto; margin: 0; padding: 0; background: transparent; }
+.trip-invite-preview .auth-embedded .auth-shell { display: block; min-height: auto; max-width: 520px; border: 1px solid #e2eaea; border-radius: 20px; box-shadow: 0 12px 28px rgba(13,48,53,.045); }
+.trip-invite-preview .auth-embedded .auth-story { display: none; }
+@media (max-width: 650px) { .trip-invite-controls label, .trip-invite-controls button { width: 100%; } .trip-invite-controls select { width: 100%; } }

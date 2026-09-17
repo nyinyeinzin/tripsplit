@@ -2,9 +2,16 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "./contexts/AuthContext";
 import { supabase } from "./lib/supabase";
 import AuthPage from "./pages/AuthPage";
+import InvitePage from "./pages/InvitePage";
 import TripHomePage from "./pages/TripHomePage";
 
 const fields = "id,name,destination,start_date,end_date,cover_photo_url,owner_id,default_vehicle_capacity,currency,created_at";
+const pendingInvitePath = window.location.pathname === "/" ? window.sessionStorage.getItem("tripsplit-pending-invite") : null;
+const inviteUrl = new URL(pendingInvitePath || window.location.pathname + window.location.search, window.location.origin);
+const inviteMatch = inviteUrl.pathname.match(/^\/trip\/([0-9a-f-]{36})\/?$/i);
+const initialInvite = inviteMatch && inviteUrl.searchParams.get("invite")
+  ? { tripId: inviteMatch[1], token: inviteUrl.searchParams.get("invite") }
+  : null;
 
 export default function App() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -12,6 +19,7 @@ export default function App() {
   const [loadingTrips, setLoadingTrips] = useState(false);
   const [error, setError] = useState("");
   const [selectedTripId, setSelectedTripId] = useState(null);
+  const [invite, setInvite] = useState(initialInvite);
 
   const loadTrips = useCallback(async () => {
     if (!user) return;
@@ -35,7 +43,16 @@ export default function App() {
     setSelectedTripId(data.id);
   }
 
+  async function finishInvite(tripId) {
+    window.sessionStorage.removeItem("tripsplit-pending-invite");
+    window.history.replaceState({}, "", "/");
+    setInvite(null);
+    await loadTrips();
+    setSelectedTripId(tripId);
+  }
+
   if (authLoading) return <main className="auth-page auth-loading" aria-live="polite"><div className="auth-loading-mark">TS</div><p>Opening your trips…</p></main>;
+  if (invite) return <InvitePage tripId={invite.tripId} token={invite.token} user={user} onJoined={finishInvite} />;
   if (!user) return <AuthPage />;
 
   return <TripHomePage user={user} trips={trips} loading={loadingTrips} error={error} selectedTripId={selectedTripId} onSelectTrip={setSelectedTripId} onCreateTrip={createTrip} onRetry={loadTrips} onSignOut={signOut} />;
