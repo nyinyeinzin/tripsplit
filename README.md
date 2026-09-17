@@ -1,6 +1,6 @@
 # TripSplit
 
-TripSplit is a mobile-first collaborative travel itinerary and shared-expense planner. Its Supabase-backed trip creation flow is now available; stops and shared planning are coming in later MVP stages.
+TripSplit is a mobile-first collaborative travel itinerary and shared-expense planner. Its Supabase-backed trip creation and day-by-day stops are available; shared planning and expenses are coming in later MVP stages.
 
 ## Scaffold status
 
@@ -10,8 +10,9 @@ TripSplit is a mobile-first collaborative travel itinerary and shared-expense pl
 - Initial Postgres migration for trips, members, invites, stops, legs, participants, expenses, and splits
 - Row-level security policies, authenticated invite acceptance, read-only invite snapshots, and Realtime publication
 - Sign-up/sign-in UI (email/password and Google) and a Supabase-backed trip list and create-trip form
+- Stop creation, editing, and deletion with trip-day scheduling, notes, and live updates
 
-After signing in, create a trip with a name, destination, dates, currency, and vehicle capacity. The trip should appear in Your trips, remain after a refresh, and be visible in the Supabase `trips` and `trip_members` tables. The itinerary intentionally says “No stops yet”; stop editing is the next stage. The old Bali prototype files remain in the repository but are no longer rendered by the app.
+After signing in, create a trip with a name, destination, dates, currency, and vehicle capacity. The trip should appear in Your trips, remain after a refresh, and be visible in the Supabase `trips` and `trip_members` tables. Open it and add a place; edits and deletion should persist after refreshing, and another signed-in trip member should see changes live. The old Bali prototype files remain in the repository but are no longer rendered by the app.
 
 ## Getting started
 
@@ -54,6 +55,7 @@ This is a purely client-side app, so two things are true no matter how the code 
 
 - `src/contexts/AuthContext.jsx` — session state and Supabase Auth actions.
 - `src/pages/TripHomePage.jsx` — trip list, creation form, and empty itinerary view.
+- `src/pages/TripStops.jsx` — day-by-day stop management, roles, and Realtime subscription.
 - `src/lib/supabase.js` — one shared Supabase client, disabled safely until environment variables are configured.
 - `supabase/migrations/` — versioned database schema, access policies, invite functions, and Realtime setup.
 - `src/data/tripData.js` — legacy prototype data, not used by the current TripSplit screens.

@@ -331,3 +331,30 @@ p { font-size: 16px; line-height: 1.45; }
 .trip-detail-facts span { min-height: 40px; display: inline-flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 12px; background: #e8f1ef; color: #175d59; font-size: 14px; font-weight: 700; }
 @media (max-width: 650px) { .trips-wrap { padding: calc(20px + env(safe-area-inset-top)) 17px 70px; } .trips-header { padding-bottom: 30px; } .trips-intro { align-items: flex-start; flex-direction: column; } .trip-grid { grid-template-columns: 1fr; } .trip-create-form { padding: 22px 17px; } .trip-form-pair { gap: 10px; } .trip-cover { height: 200px; } }
 @media (max-width: 370px) { .trip-form-pair { grid-template-columns: 1fr; } .trips-signout { font-size: 0; } }
+
+/* Supabase itinerary stops */
+.trip-stops { margin-top: 34px; }
+.trip-stops-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+.trip-stops-heading h2 { margin-top: 5px; }
+.trip-stop-form { margin: 0 0 24px; }
+.trip-stop-form h3 { font-size: 21px; }
+.trip-stop-form textarea { width: 100%; resize: vertical; min-height: 88px; padding: 13px 14px; border: 1.5px solid #dce6e7; border-radius: 14px; background: #fbfdfd; color: #14282d; font: inherit; }
+.trip-stop-form textarea:focus { outline: 3px solid #d3efea; border-color: #087a70; }
+.trip-stop-actions { display: flex; align-items: center; gap: 14px; }
+.trip-stop-actions > button:last-child { padding: 0 14px; border-radius: 13px; background: #edf2f2; color: #456168; font-weight: 700; }
+.trip-day { margin: 28px 0 0; }
+.trip-day-title { display: flex; align-items: baseline; gap: 11px; margin-bottom: 13px; }
+.trip-day-title span { color: #087a70; font-weight: 800; }
+.trip-day-title h3 { font-size: 18px; }
+.trip-day-list { display: grid; gap: 10px; }
+.trip-stop-card { display: flex; align-items: flex-start; gap: 13px; padding: 16px; border: 1px solid #e2eaea; border-radius: 18px; background: #fff; }
+.trip-stop-marker { width: 38px; height: 38px; flex-shrink: 0; display: grid; place-items: center; border-radius: 13px; background: #ddf3ec; color: #087a70; }
+.trip-stop-body { min-width: 0; flex: 1; display: grid; gap: 5px; overflow-wrap: anywhere; }
+.trip-stop-body strong { font-size: 17px; }
+.trip-stop-body small { display: inline-flex; align-items: center; gap: 5px; color: #087a70; font-size: 13px; font-weight: 750; }
+.trip-stop-body p { color: #60757a; font-size: 14px; white-space: pre-wrap; }
+.trip-stop-controls { display: flex; gap: 4px; }
+.trip-stop-controls button { min-width: 38px; width: 38px; min-height: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: #f1f5f5; color: #476368; }
+.trip-stop-controls button:last-child { color: #be123c; background: #fff1f2; }
+.trip-stops-footnote { display: flex; align-items: center; gap: 6px; margin-top: 24px; color: #60757a; font-size: 13px; }
+@media (max-width: 650px) { .trip-stops-heading { align-items: flex-start; flex-direction: column; } .trip-stops-heading .trip-new-button { width: 100%; } .trip-stop-controls { flex-direction: column; } }
