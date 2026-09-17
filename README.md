@@ -1,6 +1,6 @@
 # TripSplit
 
-TripSplit is a mobile-first collaborative travel itinerary and shared-expense planner. Its Supabase-backed trip creation, day-by-day stops, and private invite links are available; transport and expenses are coming in later MVP stages.
+TripSplit is a mobile-first collaborative travel itinerary and shared-expense planner. Its Supabase-backed trip creation, day-by-day stops, private invite links, and transport estimates are available; expenses are coming in a later MVP stage.
 
 ## Scaffold status
 
@@ -12,6 +12,7 @@ TripSplit is a mobile-first collaborative travel itinerary and shared-expense pl
 - Sign-up/sign-in UI (email/password and Google) and a Supabase-backed trip list and create-trip form
 - Stop creation, editing, and deletion with trip-day scheduling, notes, and live updates
 - Private invite links with optional expiry, read-only previews for guests, and authenticated join-to-edit
+- Transport legs between consecutive stops, per-stop attendance, vehicle counts, configurable fares, and manual overrides
 
 After signing in, create a trip with a name, destination, dates, currency, and vehicle capacity. The trip should appear in Your trips, remain after a refresh, and be visible in the Supabase `trips` and `trip_members` tables. Open it and add a place; edits and deletion should persist after refreshing, and another signed-in trip member should see changes live. The old Bali prototype files remain in the repository but are no longer rendered by the app.
 
@@ -33,6 +34,7 @@ Copy `.env.example` to `.env`:
 | --- | --- |
 | `VITE_SUPABASE_URL` | Project URL from Supabase Project Settings → API. |
 | `VITE_SUPABASE_ANON_KEY` | Publishable/anon browser key. RLS—not secrecy—protects database rows. |
+| `ORS_API_KEY` | Server-only OpenRouteService key for Netlify Functions; enables automatic route estimates. |
 | `VITE_GEMINI_API_KEY` | Gemini API key for the Travel AI page. Without it, the AI page explains how to add one. |
 | `VITE_ADMIN_USERNAME` / `VITE_ADMIN_PASSWORD` | Admin gate credentials. Defaults to `admin9` / `admin9` when unset. |
 
@@ -44,6 +46,8 @@ Copy `.env.example` to `.env`:
 4. For Google sign-in, enable the Google provider in Supabase Auth and add the app URL to the allowed redirect URLs.
 
 Never put the Supabase service-role key in a `VITE_` variable. Only the publishable/anon key belongs in the browser.
+
+Automatic route estimates use a Netlify Function, so run `npx netlify dev` for local end-to-end testing; plain `npm run dev` supports the manual time, distance, and fare fallback. Set `ORS_API_KEY` in Netlify's environment variables when deploying. The function geocodes stop names, asks OpenRouteService for a driving route, and caches the result in `legs` for 24 hours. Set your trip's base fare and per-km rate first. Routing data is an estimate, not a quote.
 
 ## Security notes (read before sharing publicly)
 
@@ -58,6 +62,7 @@ This is a purely client-side app, so two things are true no matter how the code 
 - `src/pages/TripHomePage.jsx` — trip list, creation form, and empty itinerary view.
 - `src/pages/TripStops.jsx` — day-by-day stop management, roles, and Realtime subscription.
 - `src/pages/TripInvite.jsx` and `src/pages/InvitePage.jsx` — share-link creation and guest preview/join flow.
+- `src/pages/TripLegs.jsx` and `netlify/functions/estimate-leg.mjs` — transport split UI and server-side route estimates.
 - `src/lib/supabase.js` — one shared Supabase client, disabled safely until environment variables are configured.
 - `supabase/migrations/` — versioned database schema, access policies, invite functions, and Realtime setup.
 - `src/data/tripData.js` — legacy prototype data, not used by the current TripSplit screens.

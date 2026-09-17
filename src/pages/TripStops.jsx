@@ -83,9 +83,10 @@ export default function TripStops({ trip, user }) {
     const values = { name: trimmed, day, scheduled_time: time || null, notes: notes.trim() || null };
     const result = editingId
       ? await supabase.from("stops").update(values).eq("id", editingId).eq("trip_id", trip.id)
-      : await supabase.from("stops").insert({ ...values, trip_id: trip.id, created_by: user.id });
+      : await supabase.from("stops").insert({ ...values, trip_id: trip.id, created_by: user.id }).select("id").single();
     setSaving(false);
     if (result.error) return setError(result.error.message);
+    if (!editingId && result.data?.id) await supabase.from("stop_participants").insert({ stop_id: result.data.id, user_id: user.id });
     resetForm();
     await loadStops();
   }

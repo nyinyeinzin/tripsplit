@@ -387,3 +387,31 @@ p { font-size: 16px; line-height: 1.45; }
 .trip-invite-preview .auth-embedded .auth-shell { display: block; min-height: auto; max-width: 520px; border: 1px solid #e2eaea; border-radius: 20px; box-shadow: 0 12px 28px rgba(13,48,53,.045); }
 .trip-invite-preview .auth-embedded .auth-story { display: none; }
 @media (max-width: 650px) { .trip-invite-controls label, .trip-invite-controls button { width: 100%; } .trip-invite-controls select { width: 100%; } }
+
+/* Transport estimates and per-person split */
+.trip-legs { margin-top: 38px; }
+.trip-fare-settings { padding: 19px; border-radius: 18px; background: #eaf5f1; margin-bottom: 20px; }
+.trip-fare-settings > p { color: #496469; font-size: 14px; }
+.trip-fare-fields { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.trip-fare-fields label, .trip-leg-manual label { display: grid; gap: 5px; color: #3a565b; font-size: 13px; font-weight: 750; }
+.trip-fare-fields input, .trip-leg-manual input { width: 128px; height: 43px; padding: 0 10px; border: 1px solid #bcd8d2; border-radius: 10px; background: white; color: #14282d; }
+.trip-fare-fields button, .trip-leg-manual button { padding: 0 14px; border-radius: 11px; background: #0a6f68; color: white; font-weight: 800; }
+.trip-leg-card { margin-bottom: 13px; padding: 18px; border: 1px solid #e2eaea; border-radius: 19px; background: white; }
+.trip-leg-route { display: flex; align-items: center; gap: 11px; }
+.trip-leg-route > span { width: 37px; height: 37px; display: grid; place-items: center; border-radius: 12px; background: #ddf3ec; color: #087a70; }
+.trip-leg-route > div { display: grid; gap: 3px; }
+.trip-leg-route strong { font-size: 16px; }
+.trip-leg-route small { color: #60757a; }
+.trip-leg-metrics { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 14px; }
+.trip-leg-metrics span { display: flex; align-items: center; gap: 5px; padding: 7px 10px; border-radius: 10px; background: #f2f6f6; color: #496469; font-size: 13px; }
+.trip-leg-going { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.trip-leg-going > div { display: flex; align-items: center; gap: 6px; color: #496469; font-size: 13px; }
+.trip-leg-going button { min-width: 100px; padding: 0 10px; border-radius: 11px; background: #e1f2ec; color: #087a70; font-size: 13px; font-weight: 800; }
+.trip-leg-breakdown { display: flex; align-items: center; gap: 7px; margin-top: 14px; color: #175d59; font-size: 14px; font-weight: 800; }
+.trip-leg-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+.trip-leg-actions button { padding: 0 13px; border-radius: 11px; background: #0a6f68; color: white; font-size: 13px; font-weight: 800; }
+.trip-leg-actions button:last-child { background: #edf2f2; color: #456168; }
+.trip-leg-actions button:disabled { opacity: .6; }
+.trip-leg-manual { display: flex; align-items: end; flex-wrap: wrap; gap: 9px; margin-top: 15px; padding: 14px; border-radius: 13px; background: #f4f8f7; }
+.trip-leg-manual button:last-child { background: #e3eaea; color: #456168; }
+@media (max-width: 650px) { .trip-leg-going { align-items: flex-start; flex-direction: column; } .trip-leg-going button { width: 100%; } .trip-fare-fields label { flex: 1; } .trip-fare-fields input { width: 100%; } }

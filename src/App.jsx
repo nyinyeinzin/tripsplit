@@ -5,7 +5,7 @@ import AuthPage from "./pages/AuthPage";
 import InvitePage from "./pages/InvitePage";
 import TripHomePage from "./pages/TripHomePage";
 
-const fields = "id,name,destination,start_date,end_date,cover_photo_url,owner_id,default_vehicle_capacity,currency,created_at";
+const fields = "id,name,destination,start_date,end_date,cover_photo_url,owner_id,default_vehicle_capacity,currency,transport_base_fare,transport_per_km_rate,created_at";
 const pendingInvitePath = window.location.pathname === "/" ? window.sessionStorage.getItem("tripsplit-pending-invite") : null;
 const inviteUrl = new URL(pendingInvitePath || window.location.pathname + window.location.search, window.location.origin);
 const inviteMatch = inviteUrl.pathname.match(/^\/trip\/([0-9a-f-]{36})\/?$/i);
@@ -43,6 +43,12 @@ export default function App() {
     setSelectedTripId(data.id);
   }
 
+  async function updateTrip(tripId, changes) {
+    const { data, error: updateError } = await supabase.from("trips").update(changes).eq("id", tripId).select(fields).single();
+    if (updateError) throw updateError;
+    setTrips((current) => current.map((trip) => trip.id === tripId ? data : trip));
+  }
+
   async function finishInvite(tripId) {
     window.sessionStorage.removeItem("tripsplit-pending-invite");
     window.history.replaceState({}, "", "/");
@@ -55,5 +61,5 @@ export default function App() {
   if (invite) return <InvitePage tripId={invite.tripId} token={invite.token} user={user} onJoined={finishInvite} />;
   if (!user) return <AuthPage />;
 
-  return <TripHomePage user={user} trips={trips} loading={loadingTrips} error={error} selectedTripId={selectedTripId} onSelectTrip={setSelectedTripId} onCreateTrip={createTrip} onRetry={loadTrips} onSignOut={signOut} />;
+  return <TripHomePage user={user} trips={trips} loading={loadingTrips} error={error} selectedTripId={selectedTripId} onSelectTrip={setSelectedTripId} onCreateTrip={createTrip} onUpdateTrip={updateTrip} onRetry={loadTrips} onSignOut={signOut} />;
 }
