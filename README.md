@@ -24,6 +24,7 @@ After signing in, create a trip with a name, destination, dates, currency, and v
 npm install
 cp .env.example .env
 npm run dev            # http://localhost:5173
+npm test               # ledger unit tests
 npm run build          # production build in dist/
 npm run preview        # serve the production build
 ```
