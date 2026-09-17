@@ -1,6 +1,6 @@
 # TripSplit
 
-TripSplit is a mobile-first collaborative travel itinerary and shared-expense planner. Its Supabase-backed trip creation, day-by-day stops, private invite links, and transport estimates are available; expenses are coming in a later MVP stage.
+TripSplit is a mobile-first collaborative travel itinerary and shared-expense planner. Its Supabase-backed trip creation, day-by-day stops, private invite links, transport estimates, and shared ledger are available.
 
 ## Scaffold status
 
@@ -13,6 +13,7 @@ TripSplit is a mobile-first collaborative travel itinerary and shared-expense pl
 - Stop creation, editing, and deletion with trip-day scheduling, notes, and live updates
 - Private invite links with optional expiry, read-only previews for guests, and authenticated join-to-edit
 - Transport legs between consecutive stops, per-stop attendance, vehicle counts, configurable fares, and manual overrides
+- Trip expense ledger with equal or custom splits, balances, and settle-up suggestions
 
 After signing in, create a trip with a name, destination, dates, currency, and vehicle capacity. The trip should appear in Your trips, remain after a refresh, and be visible in the Supabase `trips` and `trip_members` tables. Open it and add a place; edits and deletion should persist after refreshing, and another signed-in trip member should see changes live. The old Bali prototype files remain in the repository but are no longer rendered by the app.
 
@@ -63,6 +64,7 @@ This is a purely client-side app, so two things are true no matter how the code 
 - `src/pages/TripStops.jsx` — day-by-day stop management, roles, and Realtime subscription.
 - `src/pages/TripInvite.jsx` and `src/pages/InvitePage.jsx` — share-link creation and guest preview/join flow.
 - `src/pages/TripLegs.jsx` and `netlify/functions/estimate-leg.mjs` — transport split UI and server-side route estimates.
+- `src/pages/TripExpenses.jsx` — expenses, per-member balances, and suggested transfers.
 - `src/lib/supabase.js` — one shared Supabase client, disabled safely until environment variables are configured.
 - `supabase/migrations/` — versioned database schema, access policies, invite functions, and Realtime setup.
 - `src/data/tripData.js` — legacy prototype data, not used by the current TripSplit screens.
