@@ -1,6 +1,6 @@
 # TripSplit
 
-TripSplit is a mobile-first collaborative travel itinerary and shared-expense planner. The current UI began as a Bali itinerary prototype; the Supabase foundation is now in place so its local-only data can be migrated feature by feature.
+TripSplit is a mobile-first collaborative travel itinerary and shared-expense planner. Its Supabase-backed trip creation flow is now available; stops and shared planning are coming in later MVP stages.
 
 ## Scaffold status
 
@@ -9,8 +9,9 @@ TripSplit is a mobile-first collaborative travel itinerary and shared-expense pl
 - App-wide auth session provider (email/password and Google helpers)
 - Initial Postgres migration for trips, members, invites, stops, legs, participants, expenses, and splits
 - Row-level security policies, authenticated invite acceptance, read-only invite snapshots, and Realtime publication
+- Sign-up/sign-in UI (email/password and Google) and a Supabase-backed trip list and create-trip form
 
-The existing screens still read from `src/data/tripData.js` and `localStorage`. Connecting the UI to Auth is the next MVP step.
+After signing in, create a trip with a name, destination, dates, currency, and vehicle capacity. The trip should appear in Your trips, remain after a refresh, and be visible in the Supabase `trips` and `trip_members` tables. The itinerary intentionally says “No stops yet”; stop editing is the next stage. The old Bali prototype files remain in the repository but are no longer rendered by the app.
 
 ## Getting started
 
@@ -51,10 +52,11 @@ This is a purely client-side app, so two things are true no matter how the code 
 
 ## Architecture notes
 
-- `src/contexts/AuthContext.jsx` — session state and Supabase Auth actions used by the upcoming login UI.
+- `src/contexts/AuthContext.jsx` — session state and Supabase Auth actions.
+- `src/pages/TripHomePage.jsx` — trip list, creation form, and empty itinerary view.
 - `src/lib/supabase.js` — one shared Supabase client, disabled safely until environment variables are configured.
 - `supabase/migrations/` — versioned database schema, access policies, invite functions, and Realtime setup.
-- `src/data/tripData.js` — legacy prototype data that will be replaced incrementally by Supabase queries.
+- `src/data/tripData.js` — legacy prototype data, not used by the current TripSplit screens.
 - `src/utils/storage.js` — all localStorage keys and JSON helpers in one place. Key strings are versioned (`v05`/`v06`); bump the suffix **only** for breaking shape changes, otherwise returning users lose their saved data.
 - `src/utils/budget.js` — existing per-person cost math. Current styling remains in `src/index.css`; Tailwind is configured for new and migrated components.
 - Currency: amounts are stored in THB and converted for display (THB / IDR / USD) with the fixed rates in `tripData.js`. The selected currency is a per-device preference, changeable on Home, Budget, and Settings.
