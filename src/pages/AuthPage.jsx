@@ -23,6 +23,7 @@ export default function AuthPage({ embedded = false }) {
 
     try {
       if (mode === "signup") {
+        if (embedded) window.sessionStorage.setItem("tripsplit-pending-invite", window.location.pathname + window.location.search);
         const { data, error: signUpError } = await signUp({
           email: form.email.trim(),
           password: form.password,
