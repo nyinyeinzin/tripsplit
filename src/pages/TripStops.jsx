@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ArrowDown, ArrowUp, CalendarDays, Clock3, MapPin, Pencil, Plus, Sparkles, Trash2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { buildDaySchedule, categories, defaultDuration, orderStops } from "../utils/schedule";
+import { parseMapLink } from "../utils/mapLinks";
 
 const stopFields = "id,trip_id,name,day,notes,order_index,created_by,created_at,address,place_id,category,estimated_duration_minutes,is_anchor,photo_url,estimated_cost,opening_hours";
 
@@ -42,7 +43,7 @@ export default function TripStops({ trip, user, onTripUpdated }) {
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [savingDay, setSavingDay] = useState("");
-  const [homeBase, setHomeBase] = useState({ lat: trip.home_base_lat ?? "", lng: trip.home_base_lng ?? "" });
+  const [homeBaseLink, setHomeBaseLink] = useState(trip.home_base_map_url || (trip.home_base_lat != null && trip.home_base_lng != null ? `https://www.google.com/maps?q=${trip.home_base_lat},${trip.home_base_lng}` : ""));
   const [savingHomeBase, setSavingHomeBase] = useState(false);
   const [aiAvailable, setAiAvailable] = useState(false);
   const [aiDay, setAiDay] = useState(trip.start_date);
@@ -196,11 +197,14 @@ export default function TripStops({ trip, user, onTripUpdated }) {
 
   async function saveHomeBase(event) {
     event.preventDefault();
-    const { lat, lng } = homeBase;
-    if ((lat === "") !== (lng === "")) return setError("Enter both hotel coordinates, or leave both blank.");
-    if (lat !== "" && (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng)) || Number(lat) < -90 || Number(lat) > 90 || Number(lng) < -180 || Number(lng) > 180)) return setError("Enter valid latitude and longitude.");
+    let location;
+    try { location = homeBaseLink.trim() ? parseMapLink(homeBaseLink) : null; }
+    catch (linkError) { return setError(linkError.message); }
     setSavingHomeBase(true); setError("");
-    try { await onTripUpdated(trip.id, { home_base_lat: lat === "" ? null : Number(lat), home_base_lng: lng === "" ? null : Number(lng) }); }
+    try {
+      await onTripUpdated(trip.id, { home_base_map_url: location?.url ?? null, home_base_lat: location?.lat ?? null, home_base_lng: location?.lng ?? null });
+      if (location) setHomeBaseLink(location.url);
+    }
     catch (saveError) { setError(saveError.message); }
     setSavingHomeBase(false);
   }
@@ -220,7 +224,7 @@ export default function TripStops({ trip, user, onTripUpdated }) {
   return <section className="trip-stops" aria-label="Itinerary stops">
     <div className="trip-stops-heading"><div><p className="trips-overline">Day by day</p><h2>Places to visit</h2></div>{canEdit && !showForm && <button className="trip-new-button" type="button" onClick={() => setShowForm(true)}><Plus size={18} /> Add stop</button>}</div>
     {error && <p className="trip-form-error" role="alert">{error}</p>}
-    {canEdit && <details className="trip-home-base"><summary>Hotel / home base coordinates (optional)</summary><form onSubmit={saveHomeBase}><p>For future routes from your hotel. Your day schedule currently starts at the first stop.</p><label>Latitude <input type="number" min="-90" max="90" step="any" value={homeBase.lat} onChange={(event) => setHomeBase({ ...homeBase, lat: event.target.value })} /></label><label>Longitude <input type="number" min="-180" max="180" step="any" value={homeBase.lng} onChange={(event) => setHomeBase({ ...homeBase, lng: event.target.value })} /></label><button type="submit" disabled={savingHomeBase}>{savingHomeBase ? "Saving…" : "Save home base"}</button></form></details>}
+    {canEdit && <details className="trip-home-base"><summary>Hotel / home base (optional)</summary><form onSubmit={saveHomeBase}><p>Paste a Google Maps or Apple Maps share link for your hotel. Your day schedule currently starts at the first stop.</p><label>Maps link <input type="url" placeholder="https://maps.app.goo.gl/…" value={homeBaseLink} onChange={(event) => setHomeBaseLink(event.target.value)} /></label><button type="submit" disabled={savingHomeBase}>{savingHomeBase ? "Saving…" : "Save home base"}</button>{trip.home_base_map_url && <a href={trip.home_base_map_url} target="_blank" rel="noopener noreferrer">Open saved home base in Maps</a>}</form></details>}
     {showForm && <form className="trip-create-form trip-stop-form" onSubmit={saveStop}>
       <h3>{editingId ? "Edit stop" : "Add a place"}</h3>
       <label><span>Place name</span><input required autoFocus maxLength={180} value={name} onChange={(event) => setName(event.target.value)} placeholder="Where would you like to go?" /></label>
