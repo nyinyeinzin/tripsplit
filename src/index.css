@@ -320,6 +320,11 @@ p { font-size: 16px; line-height: 1.45; }
 .trip-create-form label small { color: #819498; font-size: 13px; font-weight: 600; }
 .trip-create-form input, .trip-create-form select { width: 100%; min-width: 0; height: 50px; padding: 0 14px; border: 1.5px solid #dce6e7; border-radius: 14px; background: #fbfdfd; color: #14282d; font-size: 16px; }
 .trip-create-form input:focus, .trip-create-form select:focus { outline: 3px solid #d3efea; border-color: #087a70; }
+.trip-city-picker { display: grid; gap: 12px; }
+.trip-city-suggestions > span { color: #60757a; font-size: 13px; font-weight: 700; }
+.trip-city-suggestions > div { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 9px; }
+.trip-city-suggestions button { min-height: 38px; padding: 7px 12px; border: 1px solid #cce1de; border-radius: 999px; background: #f4faf8; color: #175d59; font-size: 13px; font-weight: 750; }
+.trip-city-suggestions button:hover, .trip-city-suggestions button:focus-visible, .trip-city-suggestions button[aria-pressed="true"] { border-color: #087a70; background: #dff2ec; outline: none; }
 .trip-form-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .trip-duration { display: inline-flex; align-items: center; gap: 7px; color: #087a70; font-size: 14px; font-weight: 800; }
 .trip-form-error { padding: 12px; border-radius: 12px; background: #fff1f2; color: #b91c1c; font-size: 14px; }
