@@ -9,10 +9,12 @@
   },
   "scripts": {
     "dev": "vite",
+    "test": "node --test",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@countrystatecity/countries-browser": "^1.0.4",
     "@supabase/supabase-js": "^2.116.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.468.0",

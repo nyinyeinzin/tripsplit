@@ -1,8 +1,15 @@
-import { useState } from "react";
-import { ArrowLeft, ArrowRight, CalendarDays, CarFront, Compass, LogOut, MapPin, Plus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight, CalendarDays, Compass, LogOut, MapPin, Plus } from "lucide-react";
+import { getAllCitiesOfCountry } from "@countrystatecity/countries-browser";
+import TripStops from "./TripStops";
+import TripInvite from "./TripInvite";
+import TripLegs from "./TripLegs";
+import TripExpenses from "./TripExpenses";
+import { countries, findCountry } from "../data/countries";
+import { matchingCityNames } from "../data/citySearch";
 
-const currencies = ["THB", "IDR", "USD", "EUR", "GBP", "SGD", "JPY", "AUD"];
-const emptyForm = { name: "", destination: "", start_date: "", end_date: "", currency: "THB", default_vehicle_capacity: "4", cover_photo_url: "" };
+const currencies = ["THB", "MYR", "IDR", "USD", "EUR", "GBP", "SGD", "JPY", "AUD"];
+const emptyForm = { country: "", first_city: "", name: "", start_date: "", end_date: "", currency: "THB", cover_photo_url: "" };
 
 function dayCount(start, end) {
   if (!start || !end) return 0;
@@ -13,13 +20,35 @@ function dateLabel(value) {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
 }
 
-export default function TripHomePage({ user, trips, loading, error, selectedTripId, onSelectTrip, onCreateTrip, onRetry, onSignOut }) {
+export default function TripHomePage({ user, trips, loading, error, selectedTripId, onSelectTrip, onCreateTrip, onUpdateTrip, onRetry, onSignOut }) {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [cityDirectory, setCityDirectory] = useState({ code: null, cities: [], loading: false, error: "" });
+  const [visibleCityCount, setVisibleCityCount] = useState(50);
   const selectedTrip = trips.find((trip) => trip.id === selectedTripId);
   const days = dayCount(form.start_date, form.end_date);
+  const selectedCountry = findCountry(form.country);
+  const countryCode = selectedCountry?.code ?? null;
+  const matchingCities = useMemo(() => cityDirectory.code === countryCode ? matchingCityNames(cityDirectory.cities, form.first_city) : [], [cityDirectory, countryCode, form.first_city]);
+
+  useEffect(() => {
+    if (!countryCode) {
+      setCityDirectory({ code: null, cities: [], loading: false, error: "" });
+      return;
+    }
+    let cancelled = false;
+    setCityDirectory({ code: countryCode, cities: [], loading: true, error: "" });
+    getAllCitiesOfCountry(countryCode).then((cities) => {
+      if (!cancelled) setCityDirectory({ code: countryCode, cities, loading: false, error: cities.length ? "" : "No city data available. You can still type a city manually." });
+    }).catch(() => {
+      if (!cancelled) setCityDirectory({ code: countryCode, cities: [], loading: false, error: "City suggestions are unavailable right now. You can still type a city manually." });
+    });
+    return () => { cancelled = true; };
+  }, [countryCode]);
+
+  useEffect(() => { setVisibleCityCount(50); }, [countryCode, form.first_city]);
 
   function update(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -28,13 +57,17 @@ export default function TripHomePage({ user, trips, loading, error, selectedTrip
 
   async function submit(event) {
     event.preventDefault();
+    if (!selectedCountry) return setFormError("Choose a country from the list. You can type its name to find it.");
+    const city = form.first_city.trim();
+    if (!city) return setFormError("Enter the first city you will visit.");
+    if (`${city}, ${selectedCountry.name}`.length > 160) return setFormError("Use a shorter city name.");
     if (days < 1) return setFormError("End date must be on or after the start date.");
     const cover = form.cover_photo_url.trim();
     if (cover && !/^https:\/\//i.test(cover)) return setFormError("Cover photo URL must start with https://.");
     setSubmitting(true);
     setFormError("");
     try {
-      await onCreateTrip({ name: form.name.trim(), destination: form.destination.trim(), start_date: form.start_date, end_date: form.end_date, currency: form.currency, default_vehicle_capacity: Number(form.default_vehicle_capacity), cover_photo_url: cover || null });
+      await onCreateTrip({ name: form.name.trim(), destination: `${city}, ${selectedCountry.name}`, destination_country_code: selectedCountry.code, first_city: city, start_date: form.start_date, end_date: form.end_date, currency: form.currency, cover_photo_url: cover || null });
       setForm(emptyForm);
       setCreating(false);
     } catch (createError) {
@@ -50,16 +83,21 @@ export default function TripHomePage({ user, trips, loading, error, selectedTrip
       <button className="trips-back" type="button" onClick={() => onSelectTrip(null)}><ArrowLeft size={18} /> All trips</button>
       {selectedTrip.cover_photo_url && <img className="trip-cover" src={selectedTrip.cover_photo_url} alt="" />}
       <p className="trips-overline">Your itinerary</p><h1>{selectedTrip.name}</h1><p className="trip-destination"><MapPin size={18} /> {selectedTrip.destination}</p>
-      <div className="trip-detail-facts"><span><CalendarDays size={19} /> {dateLabel(selectedTrip.start_date)} – {dateLabel(selectedTrip.end_date)} · {dayCount(selectedTrip.start_date, selectedTrip.end_date)} days</span><span><CarFront size={19} /> {selectedTrip.default_vehicle_capacity} seats per vehicle</span><span>{selectedTrip.currency} trip currency</span></div>
-      <div className="trip-next-step"><span><MapPin size={26} /></span><h2>No stops yet</h2><p>This trip is saved to Supabase. Adding places and scheduling them by day is the next feature.</p></div>
+      <div className="trip-detail-facts"><span><CalendarDays size={19} /> {dateLabel(selectedTrip.start_date)} – {dateLabel(selectedTrip.end_date)} · {dayCount(selectedTrip.start_date, selectedTrip.end_date)} days</span><span>{selectedTrip.currency} trip currency</span></div>
+      <TripStops key={selectedTrip.id} trip={selectedTrip} user={user} onTripUpdated={onUpdateTrip} />
+      <TripLegs key={`legs-${selectedTrip.id}`} trip={selectedTrip} user={user} onTripUpdated={onUpdateTrip} />
+      <TripExpenses key={`expenses-${selectedTrip.id}`} trip={selectedTrip} user={user} />
+      <TripInvite key={`invite-${selectedTrip.id}`} trip={selectedTrip} user={user} />
     </section> : creating ? <section className="trip-create-panel">
       <button className="trips-back" type="button" onClick={() => setCreating(false)}><ArrowLeft size={18} /> Your trips</button><p className="trips-overline">A new adventure</p><h1>Create a trip</h1><p className="trip-create-intro">Choose where and when. You can plan the stops together next.</p>
       <form className="trip-create-form" onSubmit={submit}>
-        <label><span>Trip name</span><input required maxLength={120} value={form.name} onChange={(event) => update("name", event.target.value)} placeholder="Summer in Bali" /></label>
-        <label><span>Destination</span><input required maxLength={160} value={form.destination} onChange={(event) => update("destination", event.target.value)} placeholder="Bali, Indonesia" /></label>
+        <label><span>Country</span><input required list="trip-country-options" autoComplete="off" value={form.country} onChange={(event) => { setForm((current) => ({ ...current, country: event.target.value, first_city: "" })); setFormError(""); }} placeholder="Search or choose a country" aria-describedby="country-help" /><small id="country-help">Start typing, or open the list to browse countries.</small></label>
+        <datalist id="trip-country-options">{countries.map((country) => <option key={country.code} value={country.name} />)}</datalist>
+        {selectedCountry && <div className="trip-city-picker"><label><span>First city</span><input required maxLength={120} value={form.first_city} onChange={(event) => update("first_city", event.target.value)} placeholder="Type a city name to see matches" aria-describedby="city-help" autoComplete="off" /><small id="city-help">Type to find cities in {selectedCountry.name}. You can also enter a city not in the list.</small></label>{cityDirectory.code === countryCode && cityDirectory.loading && <p className="trip-city-status" role="status">Loading cities in {selectedCountry.name}…</p>}{cityDirectory.code === countryCode && cityDirectory.error && <p className="trip-city-status" role="status">{cityDirectory.error}</p>}{form.first_city.trim() && !cityDirectory.loading && !cityDirectory.error && cityDirectory.code === countryCode && <div className="trip-city-results" aria-label={`Cities in ${selectedCountry.name} starting with ${form.first_city.trim()}`}><p>{matchingCities.length ? `${matchingCities.length} matching ${matchingCities.length === 1 ? "city" : "cities"}` : "No matching cities. You can still use your own entry."}</p>{matchingCities.length > 0 && <div className="trip-city-list">{matchingCities.slice(0, visibleCityCount).map((city) => <button key={city} type="button" onClick={() => update("first_city", city)}>{city}</button>)}</div>}{matchingCities.length > visibleCityCount && <button className="trip-city-more" type="button" onClick={() => setVisibleCityCount((count) => count + 50)}>Show more cities ({matchingCities.length - visibleCityCount} remaining)</button>}</div>}<small className="trip-city-credit">City data: <a href="https://github.com/dr5hn/countries-states-cities-database" target="_blank" rel="noreferrer">CountryStateCity</a> (ODbL)</small></div>}
+        <label><span>Trip name</span><input required maxLength={120} value={form.name} onChange={(event) => update("name", event.target.value)} placeholder="Our next adventure" /></label>
         <div className="trip-form-pair"><label><span>Start date</span><input required type="date" value={form.start_date} onChange={(event) => update("start_date", event.target.value)} /></label><label><span>End date</span><input required type="date" min={form.start_date || undefined} value={form.end_date} onChange={(event) => update("end_date", event.target.value)} /></label></div>
         {days > 0 && <p className="trip-duration"><CalendarDays size={16} /> {days} {days === 1 ? "day" : "days"} to explore</p>}
-        <div className="trip-form-pair"><label><span>Trip currency</span><select value={form.currency} onChange={(event) => update("currency", event.target.value)}>{currencies.map((code) => <option key={code} value={code}>{code}</option>)}</select></label><label><span>Seats per vehicle</span><input required type="number" min="1" max="50" value={form.default_vehicle_capacity} onChange={(event) => update("default_vehicle_capacity", event.target.value)} /></label></div>
+        <label><span>Trip currency</span><select value={form.currency} onChange={(event) => update("currency", event.target.value)}>{currencies.map((code) => <option key={code} value={code}>{code}</option>)}</select></label>
         <label><span>Cover photo URL <small>optional</small></span><input type="url" value={form.cover_photo_url} onChange={(event) => update("cover_photo_url", event.target.value)} placeholder="https://…" /></label>
         {formError && <p className="trip-form-error" role="alert">{formError}</p>}
         <button className="trip-create-submit" type="submit" disabled={submitting}>{submitting ? "Creating trip…" : "Create trip"}{!submitting && <ArrowRight size={18} />}</button>

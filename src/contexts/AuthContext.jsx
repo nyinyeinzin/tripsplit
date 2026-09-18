@@ -41,10 +41,10 @@ export function AuthProvider({ children }) {
       configured: isSupabaseConfigured,
       signUp: (credentials) => requireSupabase().auth.signUp(credentials),
       signInWithPassword: (credentials) => requireSupabase().auth.signInWithPassword(credentials),
-      signInWithGoogle: () =>
+      signInWithGoogle: (redirectTo = window.location.origin) =>
         requireSupabase().auth.signInWithOAuth({
           provider: "google",
-          options: { redirectTo: window.location.origin }
+          options: { redirectTo }
         }),
       signOut: () => requireSupabase().auth.signOut()
     }),
