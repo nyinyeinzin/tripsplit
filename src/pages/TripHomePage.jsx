@@ -84,7 +84,7 @@ export default function TripHomePage({ user, trips, loading, error, selectedTrip
       {selectedTrip.cover_photo_url && <img className="trip-cover" src={selectedTrip.cover_photo_url} alt="" />}
       <p className="trips-overline">Your itinerary</p><h1>{selectedTrip.name}</h1><p className="trip-destination"><MapPin size={18} /> {selectedTrip.destination}</p>
       <div className="trip-detail-facts"><span><CalendarDays size={19} /> {dateLabel(selectedTrip.start_date)} – {dateLabel(selectedTrip.end_date)} · {dayCount(selectedTrip.start_date, selectedTrip.end_date)} days</span><span>{selectedTrip.currency} trip currency</span></div>
-      <TripStops key={selectedTrip.id} trip={selectedTrip} user={user} />
+      <TripStops key={selectedTrip.id} trip={selectedTrip} user={user} onTripUpdated={onUpdateTrip} />
       <TripLegs key={`legs-${selectedTrip.id}`} trip={selectedTrip} user={user} onTripUpdated={onUpdateTrip} />
       <TripExpenses key={`expenses-${selectedTrip.id}`} trip={selectedTrip} user={user} />
       <TripInvite key={`invite-${selectedTrip.id}`} trip={selectedTrip} user={user} />

@@ -5,7 +5,7 @@ import AuthPage from "./pages/AuthPage";
 import InvitePage from "./pages/InvitePage";
 import TripHomePage from "./pages/TripHomePage";
 
-const fields = "id,name,destination,destination_country_code,first_city,start_date,end_date,cover_photo_url,owner_id,default_vehicle_capacity,currency,transport_base_fare,transport_per_km_rate,created_at";
+const fields = "id,name,destination,destination_country_code,first_city,start_date,end_date,cover_photo_url,owner_id,home_base_lat,home_base_lng,default_vehicle_capacity,currency,transport_base_fare,transport_per_km_rate,created_at";
 const pendingInvitePath = window.location.pathname === "/" ? window.sessionStorage.getItem("tripsplit-pending-invite") : null;
 const inviteUrl = new URL(pendingInvitePath || window.location.pathname + window.location.search, window.location.origin);
 const inviteMatch = inviteUrl.pathname.match(/^\/trip\/([0-9a-f-]{36})\/?$/i);

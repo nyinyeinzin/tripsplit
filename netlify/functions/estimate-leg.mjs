@@ -42,9 +42,10 @@ export default async function estimateLeg(request) {
 
   const [{ data: trip }, { data: stops }] = await Promise.all([
     db.from("trips").select("destination,transport_base_fare,transport_per_km_rate").eq("id", tripId).single(),
-    db.from("stops").select("id,name,lat,lng").eq("trip_id", tripId).in("id", [fromStopId, toStopId])
+    db.from("stops").select("id,name,lat,lng,day").eq("trip_id", tripId).in("id", [fromStopId, toStopId])
   ]);
   if (!trip || stops?.length !== 2) return json({ error: "Could not find both stops in this trip." }, 404);
+  if (stops[0].day !== stops[1].day) return json({ error: "Routes must connect stops on the same day." }, 400);
 
   try {
     const points = [];
@@ -66,7 +67,7 @@ export default async function estimateLeg(request) {
     if (!Number.isFinite(summary?.distance) || !Number.isFinite(summary?.duration)) throw new Error("No drivable route was found. Enter an estimate manually.");
     const distance = Math.round(summary.distance / 10) / 100;
     const fare = Math.round((Number(trip.transport_base_fare) + distance * Number(trip.transport_per_km_rate)) * 100) / 100;
-    const { data: leg, error: saveError } = await db.from("legs").upsert({ trip_id: tripId, from_stop_id: fromStopId, to_stop_id: toStopId, estimated_minutes: Math.ceil(summary.duration / 60), estimated_distance_km: distance, estimated_cost: fare, num_vehicles: cached?.num_vehicles ?? 1, computed_at: new Date().toISOString() }, { onConflict: "trip_id,from_stop_id,to_stop_id" }).select("id,estimated_minutes,estimated_distance_km,estimated_cost,num_vehicles,computed_at").single();
+    const { data: leg, error: saveError } = await db.from("legs").upsert({ trip_id: tripId, from_stop_id: fromStopId, to_stop_id: toStopId, estimated_minutes: Math.ceil(summary.duration / 60), estimated_distance_km: distance, estimated_cost: fare, travel_mode: "driving", is_manual_override: false, num_vehicles: cached?.num_vehicles ?? 1, computed_at: new Date().toISOString() }, { onConflict: "trip_id,from_stop_id,to_stop_id" }).select("id,estimated_minutes,estimated_distance_km,estimated_cost,num_vehicles,computed_at").single();
     if (saveError) throw new Error(saveError.message);
     return json({ leg, cached: false });
   } catch (error) {
